@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+.vscode/
+base-ref/
+future-ref/
+poetry.lock
+pyproject.toml
+geo/
+*.csv
+*.parquet
+__pycache__/*
