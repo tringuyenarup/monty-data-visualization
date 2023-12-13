@@ -134,31 +134,6 @@ def metrics_groupby(trip_df, subset_cols):
 
     return trip_metrics_df
 
-def main():
-    logging.info("Start trips metrics calculation ...")
-    out_df = pd.DataFrame()
-    for scenario in SCENARIOS:
-        logging.info(f"Calculate trip metrics for scenario {scenario}")
-        if out_df.empty:
-            out_df = calculate_trip_metrics(
-                scenario_path=os.path.join(Path(os.path.abspath("")), scenario)
-            ).rename(columns={"Value": scenario})
-        else:
-            out_df = out_df.merge(
-                out_df,
-                calculate_trip_metrics(
-                    scenario_path=os.path.join(Path(os.path.abspath("")), scenario)
-                ).rename(columns={"Value": scenario}),
-                left_on=INDEX_COLS,
-                right_on=INDEX_COLS,
-            )
-
-    logging.info("Finish trips metrics calculation...")
-    out_df = out_df.astype(str)
-
-    out_df.set_index(INDEX_COLS).to_csv("test.csv")
-
-
 def run_trip_metrics(output_path, scenario) -> pd.DataFrame():
     logging.info(f"Calculate trip metrics for scenario {scenario}")
 

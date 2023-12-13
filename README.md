@@ -16,6 +16,6 @@ poetry shell
 ```
 Run the tool by running the following:
 ```
-poetry run tabulate_metrics
+poetry run tabulate_metrics config.ini
 ```
 [Will go into more detail about how to change config]
