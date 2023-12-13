@@ -9,7 +9,7 @@ PERIODS = {
     "Daily": [str(hour) for hour in range(0, 24)],
 }
 
-PV_MODES = ["pv", "freight"]
+PV_MODES = ["pv"]
 PT_MODES = ["bus", "rail"]
 
 TRIP_PURPOSES = ["home-based work", "home-based education", 
@@ -18,25 +18,10 @@ TRIP_PURPOSES = ["home-based work", "home-based education",
 DEMOGRAPHIC_TYPE = ["gender", "age_group", "income_group", 
                    "labour_force_status", "student_status", "car_availability"] 
 
-BOUNDARIES = ["regional_council", "sa2"]#["regional_council", "sa2"]
+BOUNDARIES = ["regional_council"]
 #!!!
-SCENARIOS = ["baseline", "2x_frequency"]
+SCENARIOS = ["pt_variations/baseline", "pt_variations/flattened_2x"]
 #!!!
-ASSIGNMENT_METRICS = {'vkt': 'Vehicle Kilometres Travelled',
-                      'vht': 'Vehicle Hours Travelled',
-                      'pkt': 'Passengers Kilometres Travelled',
-                      'pht': 'Passengers Hours Travelled',
-                      'length': 'Road Kilometres',
-                      'lane_km': 'Lane Kilometres'
-                      }
-
-PT_ASSIGNMENT_METRICS = ['vkt', 'vht', 'pkt', 'pht']
-PV_ASSIGNMENT_METRICS = ['vkt', 'vht']
-NETWORK_METRICS = ['length', 'lane_km']
-
-
-INDEX_COLS = ['period', 'mode', 'trip_purpose', 'area_type', 'area', 'start_area', 
-              'end_area', 'demographic_type', 'demographic_group']
 
 COLUMNS = [
     "Group",
@@ -50,7 +35,17 @@ COLUMNS = [
     "Demographic Group",
     "Value",
 ]
-
+INDEX_COLS = [
+    "Group",
+    "Boundaries",
+    "Region",
+    "Metric",
+    "Time Period",
+    "Mode",
+    "Trip Purpose",
+    "Demographic Type",
+    "Demographic Group",
+]
 ROAD_CAPS = [0.8, 1.0]
 
 

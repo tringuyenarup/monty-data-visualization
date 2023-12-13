@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gpd
 
 from pathlib import Path
-from utils import *
+from .utils import *
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,21 +42,21 @@ def calculate_demographics_metrics(scenario_path) -> pd.DataFrame:
     geo_sa2 = gpd.read_file(
         os.path.join(
             Path(os.path.abspath("")),
-            "geo/sa2-2018/statistical-area-2-2018-clipped-generalised.shp",
+            "geo/sa2-2018/statistical-area-2-2018-generalised.geojson",
         )
     )
 
-    geo_sa2["SA22018_V1"] = geo_sa2["SA22018_V1"].astype(int)
+    geo_sa2["SA22018_V1_00"] = geo_sa2["SA22018_V1_00"].astype(int)
 
     persons_df["sa2"] = (
         persons_df["sa2"]
         .map(int)
-        .map(dict(zip(geo_sa2["SA22018_V1"], geo_sa2["SA22018__1"])))
+        .map(dict(zip(geo_sa2["SA22018_V1_00"], geo_sa2["SA22018_V1_NAME"])))
     )
     households_df["sa2"] = (
         households_df["sa2"]
         .map(int)
-        .map(dict(zip(geo_sa2["SA22018_V1"], geo_sa2["SA22018__1"])))
+        .map(dict(zip(geo_sa2["SA22018_V1_00"], geo_sa2["SA22018_V1_NAME"])))
     )
     # for area in BOUNDARIES:
     #     persons_df[area] = persons_df[area].map(str)
@@ -135,28 +135,28 @@ def calculate_demographics_metrics(scenario_path) -> pd.DataFrame:
         # )
         #   df, group, area, mode: None, period: None, metric
         population = fill_missing_columns(
-            population, "Demographics", area, None, None, "Population"
+            population, "Demographics", area, None, None, None, None, None, "Population"
         )
         household = fill_missing_columns(
-            household, "Demographics", area, None, None, "Households"
+            household, "Demographics", area, None, None, None, None, None, "Households"
         )
         full_time_enrolment = fill_missing_columns(
-            full_time_enrolment, "Demographics", area, None, None, "School Enrolments"
+            full_time_enrolment, "Demographics", area, None, None, None, None, None, "School Enrolments"
         )
         uni_enrolment = fill_missing_columns(
-            uni_enrolment, "Demographics", area, None, None, "University Enrolments"
+            uni_enrolment, "Demographics", area, None, None, None, None, None, "University Enrolments"
         )
         employment = fill_missing_columns(
-            employment, "Demographics", area, None, None, "Employments"
+            employment, "Demographics", area, None, None, None, None, None, "Employments"
         )
         # income_high = fill_missing_columns(
-        #     income_high, "Demographics", area, None, None, "Income (High)"
+        #     income_high, "Demographics", area, None, None, None, None, None,  "Income (High)"
         # )
         # income_medium = fill_missing_columns(
-        #     income_medium, "Demographics", area, None, None, "Income (Medium)"
+        #     income_medium, "Demographics", area, None, None, None, None, None,  "Income (Medium)"
         # )
         # income_low = fill_missing_columns(
-        #     income_low, "Demographics", area, None, None, "Income (Low)"
+        #     income_low, "Demographics", area, None, None, None, None, None, "Income (Low)"
         # )
 
         if out_df.empty:
