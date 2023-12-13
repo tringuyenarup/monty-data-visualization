@@ -90,7 +90,7 @@ def main():
 
     if output_path[-1] != "/":
         output_path += '/'
-    run(output_path, output_filename, scenarios, assignment = True, trips=False)
+    run(output_path, output_filename, scenarios, assignment = variables['assignment'], trips=variables['trips'])
 
 if __name__ == "__main__":
     main()
