@@ -18,4 +18,9 @@ Run the tool by running the following:
 ```
 poetry run tabulate_metrics config.ini
 ```
-[Will go into more detail about how to change config]
+### Config
+Key inputs of the tool can be edited in the config.ini file. The inputs include:
+- Report path (where monty-reporting outputs are located)
+- File name of the tabulation (do not add in file format suffix)
+- List of scenario names (delimited by comma) - please make sure they are located as separate folders with the report path
+- Whether you would like to include assignment-related, trips-related, and/or demographics-related metrics -> these are booleans
