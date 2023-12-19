@@ -73,6 +73,10 @@ def run(output_path: str, output_filename: str, scenarios: list, assignment: boo
     #for col in INDEX_COLS:
     #    out_df[col] = out_df[col].map(str)
 
+    if 'index' in out_df.columns:
+        out_df = out_df.drop(columns='index')
+    out_df = out_df[rearrange_columns(out_df.columns) + scenarios]
+
     logging.info("Write parquet output....")
     out_df.to_parquet(output_path+ output_filename + ".parquet")
     #out_df.set_index(INDEX_COLS).to_parquet(output_filename + ".parquet")
@@ -84,13 +88,13 @@ def main():
     paths = config['paths']
     variables = config['variables']
 
-    output_path = paths['report_path']
-    output_filename = paths['tabulation_filename']
+    analysis_path = paths['report_path']
+    tabulation_filename = paths['tabulation_filename']
     scenarios = [x.lstrip() for x in variables['scenarios'].split(',')]
 
-    if output_path[-1] != "/":
-        output_path += '/'
-    run(output_path, output_filename, scenarios, assignment = variables['assignment'], trips=variables['trips'])
+    if analysis_path[-1] != "/":
+        analysis_path += '/'
+    run(analysis_path, tabulation_filename, scenarios, assignment = variables['assignment'], trips=variables['trips'])
 
 if __name__ == "__main__":
     main()

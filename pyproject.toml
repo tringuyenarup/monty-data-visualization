@@ -21,3 +21,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 tabulate_metrics = "src.tabulate_metrics:main"
+download_outputs = "src.download_outputs:main"
+monty_reporting = "src.monty_reporting:main"

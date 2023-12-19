@@ -18,7 +18,7 @@ TRIP_PURPOSES = ["home-based work", "home-based education",
 DEMOGRAPHIC_TYPE = ["gender", "age_group", "income_group", 
                    "labour_force_status", "student_status", "car_availability"] 
 
-BOUNDARIES = ["regional_council", "sa2"]#["regional_council", "sa2"]
+BOUNDARIES = ["regional_council"]#["regional_council", "sa2"]
 #!!!
 SCENARIOS = ["baseline", "2x_frequency"]
 #!!!
@@ -37,19 +37,6 @@ NETWORK_METRICS = ['length', 'lane_km']
 
 INDEX_COLS = ['period', 'mode', 'trip_purpose', 'area_type', 'area', 'start_area', 
               'end_area', 'demographic_type', 'demographic_group']
-
-COLUMNS = [
-    "Group",
-    "Boundaries",
-    "Region",
-    "Metric",
-    "Time Period",
-    "Mode",
-    "Trip Purpose",
-    "Demographic Type",
-    "Demographic Group",
-    "Value",
-]
 
 ROAD_CAPS = [0.8, 1.0]
 
