@@ -1,0 +1,77 @@
+[[event_handlers]]
+type = "passengers"
+interval = 3_600
+file_prefix = "passengers"
+tables = [
+    { name = "cablecar", pattern = "cablecar", scale = true },
+    { name = "ferry",    pattern = "ferry",    scale = true },
+    { name = "rail",     pattern = "rail",     scale = true },
+    { name = "bus",      pattern = "bus",      scale = true },
+    { name = "car",      pattern = '^\d',      scale = true },
+]
+aggregates = [
+    { name = "pt",  components = [ "cablecar", "ferry", "rail", "bus" ] },
+    { name = "pv",  components = [ "car" ]                    },
+    { name = "all", components = [ "cablecar", "ferry", "rail", "bus", "car" ] },
+]
+
+[[event_handlers]]
+type = "stop_interactions"
+interval = 3_600
+boardings_file_prefix = "boardings"
+alightings_file_prefix = "alightings"
+tables = [
+    { name = "cablecar", pattern = "cablecar", scale = true },
+    { name = "ferry",    pattern = "ferry",    scale = true },
+    { name = "rail",     pattern = "rail",     scale = true },
+    { name = "bus",      pattern = "bus",      scale = true },
+]
+aggregates = [
+    { name = "pt",  components = [ "cablecar", "ferry", "rail", "bus" ] },
+]
+
+[[event_handlers]]
+type = "times"
+interval = 3_600
+file_prefix = "times"
+tables = [
+    { name = "cablecar", pattern = "cablecar"},
+    { name = "ferry",    pattern = "ferry"   },
+    { name = "rail",     pattern = "rail"   },
+    { name = "bus",      pattern = "bus"     },
+    { name = "car",      pattern = '^\d'     },
+    { name = "freight",  pattern = "hgv"     },
+]
+aggregates = [
+    { name = "pt",  components = [ "cablecar", "ferry", "rail", "bus" ] },
+    { name = "pv",  components = [ "car", "freight" ]                    },
+    { name = "all", components = [ "cablecar", "ferry", "rail", "bus", "car", "freight" ] },
+]
+
+[[event_handlers]]
+type = "vehicle_select_links"
+interval = 3_600
+pattern = ""
+file_prefix = "select_link"
+scale = true
+tables = [
+    { name = "upper_queen_inbound", links = ["242696"] },
+]
+
+[[event_handlers]]
+type = "volumes"
+interval = 3_600
+file_prefix = "volumes"
+tables = [
+    { name = "cablecar", pattern = "cablecar", scale = false },
+    { name = "ferry",    pattern = "ferry",    scale = false },
+    { name = "rail",     pattern = "rail",     scale = false },
+    { name = "bus",      pattern = "bus",      scale = false },
+    { name = "car",      pattern = '^\d',      scale = true  },
+    { name = "freight",  pattern = "hgv",      scale = true  },
+]
+aggregates = [
+    { name = "pt",  components = [ "cablecar", "ferry", "rail", "bus" ] },
+    { name = "pv",  components = [ "car", "freight" ]                    },
+    { name = "all", components = [ "cablecar", "ferry", "rail", "bus", "car", "freight" ] },
+]

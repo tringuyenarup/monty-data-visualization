@@ -4,6 +4,7 @@ import subprocess
 import configparser
 import logging
 import sys
+import shutil
 
 def monty_reporting_events(config_path, events_path, output_dir, sample_size = 0.1):
     """Process an events XML file into individual CSVs
@@ -70,6 +71,8 @@ def main():
     paths = config['paths']
     variables = config['variables']
 
+    cur_path = os.path.dirname(os.path.abspath(__file__))
+    default_path = os.path.join(cur_path, 'default')
     scenario_group = variables['scenario_group']
     results_dir_base = paths['raw_output_path']
     analysis_dir_base = paths['report_path']
@@ -89,15 +92,32 @@ def main():
         events_path = results_dir + events_xml
         analysis_dir = analysis_dir_base + "/" + scenario + "/"
         config_path = analysis_dir_base + "/" + config_toml
+        if not os.path.isfile(config_path):
+            logging.info("Events config not found, copying default events_config.toml")
+            default_config = os.path.join(default_path, 'events_config.toml')
+            shutil.copy(default_config, config_path)
+
         regc = region_dir + 'regional_council.geojson'
         sa2 = region_dir + 'sa2.geojson'
 
         network_path = results_dir + network_xml
         network_output = analysis_dir + "link_table.csv"
         trips_path = results_dir + trips_csv
-        trips_output = analysis_dir + "trips.csv"
+        trips_output = analysis_dir + "joined_trips.csv"
 
         monty_reporting_events(config_path, events_path, analysis_dir, sample_size = 0.1)
         monty_reporting_network(network_path, network_output, region_join = [regc, sa2])
         monty_reporting_trips(trips_path, trips_output, region_join = [regc, sa2])
+
+        households_file = analysis_dir + 'synthetic_households.csv'
+        persons_file = analysis_dir + 'synthetic_persons.csv'
+        default_households = os.path.join(default_path, 'synthetic_households.csv')
+        default_persons = os.path.join(default_path, 'synthetic_households.csv')
+        if not os.path.isfile(households_file):
+            logging.info("[temporary measure only] Households csv not found in scenario report. Copying default file")
+            shutil.copy(default_households, households_file)
+        if not os.path.isfile(persons_file):
+            logging.info("[temporary measure only] Persons csv not found in scenario report. Copying default file")
+            shutil.copy(default_persons, persons_file)
+            
         
