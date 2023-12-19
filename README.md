@@ -21,8 +21,10 @@ poetry shell
 ```
 poetry run download_outputs config.ini
 ```
-(2) Run `monty-reporting` to 
-
+(2) Run `monty-reporting` to - make sure you have the [tool installed](https://gitlab.com/mot-analytics/monty/analysis/monty-reporting):
+```
+poetry run monty_reporting config.ini
+```
 (3) Tabulate metrics by running the following:
 ```
 poetry run tabulate_metrics config.ini
