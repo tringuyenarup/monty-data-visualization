@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The `monty-data-visualization` tool uses `monty-reporting` outputs (a set of data that has manipulated raw Monty simulation outputs into a summary of trips, network, and network assignments) to generate a comprehensive, standardized tabulation of metrics for easy visualization in the simulation output -> analysis pipeline. 
+This tool uses `monty-reporting` outputs (a set of data that has manipulated raw Monty simulation outputs into a summary of trips, network, and network assignments) to generate a comprehensive, standardized tabulation of metrics for easy visualization in the simulation output -> analysis pipeline. 
 Currently, there are options to run the entire pipeline from downloading raw simulation outputs from S3 all the way to producing the metrics tabulation, but you have to make sure [`monty-reporting`](https://gitlab.com/mot-analytics/monty/analysis/monty-reporting) is installed in your computer. See under "Usage" in this README for more detail.
 
 ## Installation
