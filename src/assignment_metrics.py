@@ -43,9 +43,13 @@ def calculate_assignment_metrics(scenario_path) -> pd.DataFrame:
             os.path.join(scenario_path, f"passengers_{mode}.csv")
         )
 
+        boardings_df = read_volume(os.path.join(scenario_path, f"boardings_{mode}.csv"))
+        alightings_df = read_volume(os.path.join(scenario_path, f"alightings_{mode}.csv"))
+
         logging.info(f"Calculate pt metrics for {mode}")
         tmp_pt_metrics = calculate_pt_metrics(
-            network_df, volume_df, time_df, passenger_df, mode
+            network_df, volume_df, time_df, passenger_df, 
+            boardings_df, alightings_df, mode
         )
 
         tmp_assignment_dfs.append(tmp_pt_metrics)
@@ -57,7 +61,7 @@ def calculate_assignment_metrics(scenario_path) -> pd.DataFrame:
 
     return assignment_summary
 
-def calculate_pt_metrics(network_df, volume_df, time_df, passenger_df, mode) -> pd.DataFrame:
+def calculate_pt_metrics(network_df, volume_df, time_df, passenger_df, boardings_df, alightings_df, mode) -> pd.DataFrame:
     tmp_df = pd.DataFrame()
     df = network_df.join(volume_df, on="id", how="inner")
     df = df.join(time_df, on="id", rsuffix="_time")
@@ -73,11 +77,17 @@ def calculate_pt_metrics(network_df, volume_df, time_df, passenger_df, mode) -> 
         df[f"{i}_pkt"] = df[f"{i}_passenger"] * (df["length"] / 1000)
         df[f"{i}_pht"] = df[f"{i}_passenger"] * (df[f"{i}_time"] / 3600)
         # Volume to ratio
+    ba_df = boardings_df.join(alightings_df, on='id', how="outer", lsuffix="_boardings", rsuffix="_alightings")
+    ba_df['region_pt'] = ba_df.index.str.split(".link").str[0].str.split("-").str[-1].str.lower().str.capitalize()
+    print(ba_df["region_pt"].unique())
+    ba_df['regional_council'] = ba_df['region_pt'].map(PT_REGION_MAPPING)
     
     for area in BOUNDARIES:
         for period_key, period in PERIODS.items():
             for metric in PT_ASSIGNMENT_METRICS:
                 pt_assignment_metrics_dfs.append(assignment_hourly_groupby(df, 'Assignment', metric, area, period_key, period, mode))
+            for metric in BA_METRICS:
+                pt_assignment_metrics_dfs.append(assignment_hourly_groupby(ba_df, 'Assignment', metric, area, period_key, period, mode))
 
     pt_assignment_metrics_summary = pd.concat(pt_assignment_metrics_dfs)
 

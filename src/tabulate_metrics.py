@@ -26,7 +26,7 @@ def rearrange_columns(columns):
 
 # @click.command()
 # @click.option("--output_filename", "-n", required=False, default=r"test.csv")
-def run(output_path: str, output_filename: str, scenarios: list, assignment: bool =True, trips: bool =True, demographics: bool = False):
+def run(output_path: str, output_filename: str, scenarios: list, assignment: bool = True, trips: bool = True, demographics: bool = False):
     out_df = pd.DataFrame()
 
     metrics = []
@@ -94,7 +94,8 @@ def main():
 
     if analysis_path[-1] != "/":
         analysis_path += '/'
-    run(analysis_path, tabulation_filename, scenarios, assignment = variables['assignment'], trips=variables['trips'])
+    run(analysis_path, tabulation_filename, scenarios, 
+        assignment = eval(variables['assignment']), trips=eval(variables['trips']))
 
 if __name__ == "__main__":
     main()

@@ -34,6 +34,7 @@ def calculate_trip_metrics(scenario_path) -> pd.DataFrame:
 
     groups = ['period', 'longest_distance_mode', 'trip_purpose', 'od', 'demo_type']
     trips_metrics_dfs = []
+    od_metrics_dfs = []
 
     for L in range(len(groups) + 1):
         for subset in itertools.combinations(groups, L):
@@ -41,9 +42,13 @@ def calculate_trip_metrics(scenario_path) -> pd.DataFrame:
             logging.info(f"Calculate trip base for these subsets: {str(subset)}")
             if not subset:
                 #break
-                trips_metrics_dfs.append(
-                    pd.DataFrame([[trip_df['trip_id'].count(), trip_df['trav_time'].mean(), trip_df['traveled_distance'].mean()]],
-                                 columns = ['trip_id', 'trav_time', 'traveled_distance']))
+                alltrips_df = pd.DataFrame([[trip_df['trip_id'].count(), trip_df['trav_time'].mean(), trip_df['traveled_distance'].mean()]],
+                                 columns = ['trip_id', 'trav_time', 'traveled_distance'])
+                trips_metrics_dfs.append(alltrips_df)
+
+                od_metrics_dfs.append(od_groupby(trip_df, subset_cols=[]))
+                od_metrics_dfs.append(alltrips_df)
+                
             elif ('demo_type' in subset) and ('od' in subset):
                 for demo_type in DEMOGRAPHIC_TYPE:
                     temp_subset_cols = subset.copy()
@@ -71,25 +76,29 @@ def calculate_trip_metrics(scenario_path) -> pd.DataFrame:
                         trips_metrics_dfs.append(metrics_groupby(trip_df, subset_cols))
                     
             else:
-                subset_cols = subset.copy()
+                subset_cols = sorted(subset.copy(), key=str.lower)
                 trips_metrics_dfs.append(metrics_groupby(trip_df, subset_cols))
+                if (subset_cols == ['longest_distance_mode', 'period']) or (subset_cols == ['longest_distance_mode']) or (subset_cols == ['period']):
+                    od_metrics_dfs.append(od_groupby(trip_df, subset_cols))
         
-    trips_metrics_summary= pd.concat(trips_metrics_dfs, axis = 0, join='outer'
-                                ).rename(columns={'trip_id': 'trip_count',
-                                                'longest_distance_mode': 'mode',
-                                                'trav_time': 'travel_time'})
+    trips_metrics_summary= pd.concat(trips_metrics_dfs, axis = 0, join='outer')
+    od_metrics_summary = pd.concat(od_metrics_dfs, axis = 0, join='outer')
 
-    trips_metrics_summary = trips_metrics_summary.fillna("All")
-    trips_metrics_summary['period'] = trips_metrics_summary['period'].fillna("Daily")
-    trips_metrics_summary['Group'] = 'Trips'
-    trips_index_cols = ['Group'] + [col for col in INDEX_COLS if col in trips_metrics_summary.columns]
-    trips_metrics_summary = trips_metrics_summary.melt(id_vars=trips_index_cols, var_name="Metric", value_name="Value")
+    trips_metrics_summary = format_summary(trips_metrics_summary, 'Trips')
+    od_metrics_summary = format_summary(od_metrics_summary, 'Trips (OD)')
 
-    return trips_metrics_summary
+    trips_metrics_summary = pd.concat([trips_metrics_summary, od_metrics_summary], axis = 0, join='outer')
+
+    return trips_metrics_summary#, od_metrics_summary
 
 
 def read_trips(scenario_path) -> pd.DataFrame:
-    df = pd.read_csv(os.path.join(scenario_path, "trips.csv"), low_memory=False)
+    trips_file = os.path.join(scenario_path, "joined_trips.csv")
+    if os.path.isfile(trips_file):
+        df = pd.read_csv(trips_file, low_memory=False)
+    else:
+        df = pd.read_csv(os.path.join(scenario_path, "trips.csv"), low_memory=False)
+
     persons = pd.read_csv(os.path.join(scenario_path, "synthetic_persons.csv"), low_memory=False)
     persons = persons[['person_id', 'household_id', 'home_region', 'sa2', 'age', 'gender', 
                        'labour_force_status', 'student_status', 'hh_size', 'car_availability', 
@@ -115,6 +124,9 @@ def read_trips(scenario_path) -> pd.DataFrame:
     df["od_activities"] = df["start_activity_type"].str.split("_").str[0] + "-" + df["end_activity_type"].str.split("_").str[0]
     df['trip_purpose'] = df['od_activities'].apply(get_trip_purpose)
 
+    df['start_regional_council'] = df['start_regional_council'].str.replace("Region", "").str.rstrip()
+    df['end_regional_council'] = df['end_regional_council'].str.replace("Region", "").str.rstrip()
+
     return df
 
 def metrics_groupby(trip_df, subset_cols):
@@ -133,6 +145,39 @@ def metrics_groupby(trip_df, subset_cols):
         trip_metrics_df = trip_metrics_df.rename(columns={area_type[0]: area_type[0].split("_")[0]+"_area"})
 
     return trip_metrics_df
+
+def od_groupby(trip_df, subset_cols) -> pd.DataFrame:
+    od_trips_dfs = []
+    for area_type in ['regional_council', 'sa2']:
+        od_subset_cols = subset_cols + ['start_'+area_type, 'end_'+area_type]
+        od_trips_df = trip_df.groupby(od_subset_cols).agg(
+            {'trip_id':'count', 'trav_time': 'mean', 'traveled_distance': 'mean'}).reset_index()
+        od_trips_df['area_type'] = area_type
+        od_trips_df = od_trips_df.rename(columns={'start_'+area_type: 'start_area', 'end_'+area_type: 'end_area'})
+        od_trips_dfs.append(od_trips_df)
+
+    if subset_cols != []:
+        alltrips_df = trip_df.groupby(subset_cols).agg(
+            {'trip_id':'count', 'trav_time': 'mean', 'traveled_distance': 'mean'}).reset_index()
+        alltrips_df['area_type'] = ""
+        alltrips_df['start_area'] = ""
+        alltrips_df['end_area'] = ""
+
+        od_trips_dfs.append(alltrips_df)
+
+    return pd.concat(od_trips_dfs)
+
+def format_summary(metrics_summary, group = 'Trips'):
+    metrics_summary= metrics_summary.rename(columns={'trip_id': 'trip_count',
+                                                'longest_distance_mode': 'mode',
+                                                'trav_time': 'travel_time'}).fillna("")
+    
+    metrics_summary['period'] = metrics_summary['period'].fillna("Daily")
+    metrics_summary['Group'] = group
+    trips_index_cols = ['Group'] + [col for col in INDEX_COLS if col in metrics_summary.columns]
+    metrics_summary = metrics_summary.melt(id_vars=trips_index_cols, var_name="Metric", value_name="Value")
+
+    return metrics_summary
 
 def run_trip_metrics(output_path, scenario) -> pd.DataFrame():
     logging.info(f"Calculate trip metrics for scenario {scenario}")

@@ -64,6 +64,10 @@ def monty_reporting_trips(trips_path, output_path, region_join: list = None):
 
     os.system(f"monty-reporting trips --trips {trips_path} --out {output_path}" + join)
 
+def monty_reporting_to_s3(report_path, scenario_group, scenario):
+    s3_uri = f"s3://mot-non-production-simulations/applications/{scenario_group}/analysis/{scenario}/"
+    os.system(f"aws s3 cp {report_path} {s3_uri} --recursive")
+
 def main():
     logging.info("Generate monty reporting outputs.")
     config = configparser.ConfigParser()
@@ -72,11 +76,16 @@ def main():
     variables = config['variables']
 
     cur_path = os.path.dirname(os.path.abspath(__file__))
+    #print(cur_path)
     default_path = os.path.join(cur_path, 'default')
     scenario_group = variables['scenario_group']
     results_dir_base = paths['raw_output_path']
     analysis_dir_base = paths['report_path']
+    if not os.path.isdir(analysis_dir_base):
+        os.mkdir(analysis_dir_base)
     scenarios = [x.lstrip() for x in variables['scenarios'].split(',')]
+
+    population_dir_base = paths['population_path']
 
     region_dir = paths['region_path']
     if not region_dir.endswith('/'):
@@ -86,38 +95,46 @@ def main():
     config_toml = 'events_config.toml'
     network_xml = 'output_network.xml.gz'
     trips_csv = 'output_trips.csv.gz'
+    households_csv = 'synthetic_households.csv'
+    persons_csv = 'synthetic_persons.csv'
+
+    default_config = os.path.join(default_path, config_toml)
+    config_path = analysis_dir_base + "/" + config_toml
+    if not os.path.isfile(config_path):
+        logging.info(config_path + " not found, copying default events_config.toml")
+        shutil.copy(default_config, config_path)
 
     for scenario in scenarios:
-        results_dir = results_dir_base + "/outputs_" + scenario + "/"
-        events_path = results_dir + events_xml
-        analysis_dir = analysis_dir_base + "/" + scenario + "/"
-        config_path = analysis_dir_base + "/" + config_toml
-        if not os.path.isfile(config_path):
-            logging.info("Events config not found, copying default events_config.toml")
-            default_config = os.path.join(default_path, 'events_config.toml')
-            shutil.copy(default_config, config_path)
+        results_dir = results_dir_base + "/outputs_" + scenario
+        events_path = os.path.join(results_dir, events_xml)
+        analysis_dir = analysis_dir_base + "/" + scenario
+
+        if not os.path.isdir(analysis_dir):
+            os.mkdir(analysis_dir)
+        
+        for file in [households_csv, persons_csv]:
+            filepath = os.path.join(analysis_dir, file)
+            if not os.path.isfile(filepath):
+                logging.info(filepath + "not found, copying default " + file + " into " + analysis_dir)
+                default_file = os.path.join(default_path, file)
+                shutil.copy(default_file, filepath)
 
         regc = region_dir + 'regional_council.geojson'
         sa2 = region_dir + 'sa2.geojson'
 
-        network_path = results_dir + network_xml
-        network_output = analysis_dir + "link_table.csv"
-        trips_path = results_dir + trips_csv
-        trips_output = analysis_dir + "joined_trips.csv"
+        network_path = os.path.join(results_dir, network_xml)
+        network_output = os.path.join(analysis_dir , "link_table.csv")
+        trips_path = os.path.join(results_dir, trips_csv)
+        trips_output = os.path.join(analysis_dir, "joined_trips.csv")
 
         monty_reporting_events(config_path, events_path, analysis_dir, sample_size = 0.1)
         monty_reporting_network(network_path, network_output, region_join = [regc, sa2])
         monty_reporting_trips(trips_path, trips_output, region_join = [regc, sa2])
 
-        households_file = analysis_dir + 'synthetic_households.csv'
-        persons_file = analysis_dir + 'synthetic_persons.csv'
-        default_households = os.path.join(default_path, 'synthetic_households.csv')
-        default_persons = os.path.join(default_path, 'synthetic_households.csv')
-        if not os.path.isfile(households_file):
-            logging.info("[temporary measure only] Households csv not found in scenario report. Copying default file")
-            shutil.copy(default_households, households_file)
-        if not os.path.isfile(persons_file):
-            logging.info("[temporary measure only] Persons csv not found in scenario report. Copying default file")
-            shutil.copy(default_persons, persons_file)
+        report_to_s3 = variables['report_to_s3']
+        if report_to_s3:
+            monty_reporting_to_s3(analysis_dir, scenario_group, scenario)
+
+
             
         

@@ -28,5 +28,5 @@ def main():
     for scenario in scenarios:
         results_dir = results_dir_base + "/outputs_" + scenario
         if (not os.path.isdir(results_dir)) or (not any(os.scandir(results_dir))):
-            print("Donwloading simulation results into " + results_dir) 
+            print("Downloading simulation results into " + results_dir) 
             download_simulation_results(results_dir, scenario_group, scenario)

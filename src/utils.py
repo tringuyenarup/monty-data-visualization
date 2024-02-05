@@ -9,8 +9,8 @@ PERIODS = {
     "Daily": [str(hour) for hour in range(0, 24)],
 }
 
-PV_MODES = ["pv", "freight"]
-PT_MODES = ["bus", "rail"]
+PV_MODES = ["pv"] #["pv", "freight"]
+PT_MODES = ["bus", "rail", "ferry"]
 
 TRIP_PURPOSES = ["home-based work", "home-based education", 
                 "home-based other", "employment-based", "non home-based"]
@@ -18,19 +18,22 @@ TRIP_PURPOSES = ["home-based work", "home-based education",
 DEMOGRAPHIC_TYPE = ["gender", "age_group", "income_group", 
                    "labour_force_status", "student_status", "car_availability"] 
 
-BOUNDARIES = ["regional_council"]#["regional_council", "sa2"]
+BOUNDARIES = ["regional_council"]#["regional_council", "sa2"]#["regional_council", "sa2"]
 #!!!
-SCENARIOS = ["baseline", "2x_frequency"]
+#SCENARIOS = ["baseline", "2x_frequency"]
 #!!!
 ASSIGNMENT_METRICS = {'vkt': 'Vehicle Kilometres Travelled',
                       'vht': 'Vehicle Hours Travelled',
                       'pkt': 'Passengers Kilometres Travelled',
                       'pht': 'Passengers Hours Travelled',
                       'length': 'Road Kilometres',
-                      'lane_km': 'Lane Kilometres'
+                      'lane_km': 'Lane Kilometres',
+                      'boardings': "Boardings",
+                      'alightings': "Alightings"
                       }
 
 PT_ASSIGNMENT_METRICS = ['vkt', 'vht', 'pkt', 'pht']
+BA_METRICS = ["boardings", "alightings"]
 PV_ASSIGNMENT_METRICS = ['vkt', 'vht']
 NETWORK_METRICS = ['length', 'lane_km']
 
@@ -58,38 +61,25 @@ REGION_MAPPING = {
     15: "Southland Region",
 }
 
-def fill_missing_columns(
-    df, group, area, mode: None, period: None, 
-    trip_purpose: None, demo_type: None, demo_group: None, 
-    metric
-) -> pd.DataFrame:
-    df["Group"] = group
-    df["Boundaries"] = area
-    if "Region" not in df.columns:
-        df["Region"] = df.index
-    if "Time Period" not in df.columns:
-        df["Time Period"] = period
-    if "Mode" not in df.columns:
-        df["Mode"] = mode
-    if "Trip Purpose" not in df.columns:
-        df["Trip Purpose"] = trip_purpose
-    if "Demographic Type" not in df.columns:
-        df["Demographic Type"] = demo_type
-    if "Demographic Group" not in df.columns:
-        df["Demographic Group"] = demo_group
-    df["Metric"] = metric
-    df = df.reset_index(drop=True)
-    return df[COLUMNS]
-
+PT_REGION_MAPPING = {
+    "Auckland": "Auckland Region",
+    "Wellington": "Wellington Region",
+    "Christchurch": "Canterbury Region",
+    "Waikato": "Waikato Region",
+    "Bop": "Bay of Plenty Region",
+    "Orc": "Otago Region",
+    "Intercity": "Intercity"
+    #Auckland, Wellington, Christchurch, Waikato, Intercity, BOP, and ORC
+}
 
 def get_time_period(h):
     if (h >= 7) & (h < 9):
         return "AM"
     elif (h >= 9) & (h < 15):
         return "IP"
-    elif (h >= 15) & (h < 18):
+    elif (h >= 15) & (h < 19):
         return "PM"
-    elif ((h >= 18) & (h < 24)) | ((h >= 0) & (h < 7)):
+    elif ((h >= 19) & (h < 24)) | ((h >= 0) & (h < 7)):
         return "OP"
 
 
